@@ -11,6 +11,11 @@ use Filagora\Core\Schema\SchemaRegistry;
 use Filagora\Memberships\Billing\ProviderRegistry;
 use Filagora\Memberships\Events\MembershipChanged;
 use Filagora\Memberships\Models\UserMembership;
+use Filagora\Memberships\Providers\PayPal\PayPalClient;
+use Filagora\Memberships\Providers\PayPal\PayPalProvider;
+use Filagora\Memberships\Providers\PayPal\PayPalSubscriptions;
+use Filagora\Memberships\Providers\PayPal\PayPalWebhookHandler;
+use Filagora\Memberships\Services\BillingEvents;
 use Filagora\Memberships\Services\Memberships;
 use Filagora\Memberships\Support\Models;
 use Illuminate\Support\Facades\Event;
@@ -24,6 +29,11 @@ class MembershipsServiceProvider extends ServiceProvider
 
         $this->app->singleton(ProviderRegistry::class);
         $this->app->singleton(Memberships::class);
+        $this->app->singleton(BillingEvents::class);
+        $this->app->singleton(PayPalClient::class);
+        $this->app->singleton(PayPalProvider::class);
+        $this->app->singleton(PayPalSubscriptions::class);
+        $this->app->singleton(PayPalWebhookHandler::class);
     }
 
     public function boot(): void
@@ -35,6 +45,8 @@ class MembershipsServiceProvider extends ServiceProvider
         $this->app->make(SchemaRegistry::class)->register(
             PackageSchema::fromFile('memberships', __DIR__.'/../database/schema.php', __DIR__.'/../database/migrations'),
         );
+
+        $this->app->make(ProviderRegistry::class)->register($this->app->make(PayPalProvider::class));
 
         $this->announceMembershipChanges();
 
