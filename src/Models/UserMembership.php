@@ -29,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $canceled_at
  * @property list<string>|null $granted_entitlements_snapshot
  * @property array<string, mixed>|null $meta
+ * @property-read MembershipPlan|null $plan
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */

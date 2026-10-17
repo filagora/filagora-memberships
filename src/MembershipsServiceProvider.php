@@ -8,8 +8,15 @@ use Filagora\Core\Modules\Module;
 use Filagora\Core\Modules\ModuleRegistry;
 use Filagora\Core\Schema\PackageSchema;
 use Filagora\Core\Schema\SchemaRegistry;
+use Filagora\Entitlements\Registry\EntitlementRegistry;
+use Filagora\Forums\Targeting\TargetingRules;
 use Filagora\Memberships\Billing\ProviderRegistry;
+use Filagora\Memberships\Entitlements\BumpEntitlementsCache;
+use Filagora\Memberships\Entitlements\MembershipEntitlementKeys;
+use Filagora\Memberships\Entitlements\MembershipGrantSource;
+use Filagora\Memberships\Entitlements\SyncPlanDefinitions;
 use Filagora\Memberships\Events\MembershipChanged;
+use Filagora\Memberships\Forums\MembershipRule;
 use Filagora\Memberships\Models\UserMembership;
 use Filagora\Memberships\Providers\PayPal\PayPalClient;
 use Filagora\Memberships\Providers\PayPal\PayPalProvider;
@@ -49,6 +56,8 @@ class MembershipsServiceProvider extends ServiceProvider
         $this->app->make(ProviderRegistry::class)->register($this->app->make(PayPalProvider::class));
 
         $this->announceMembershipChanges();
+        $this->joinEntitlements();
+        $this->joinForums();
 
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'filagora-memberships');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
@@ -87,5 +96,36 @@ class MembershipsServiceProvider extends ServiceProvider
         $model::deleted(function (UserMembership $membership): void {
             Event::dispatch(new MembershipChanged($membership, (string) $membership->status, deleted: true));
         });
+    }
+
+    /**
+     * With the entitlements package installed, memberships count as a source of entitlements,
+     * their plans feed the definitions list, and a membership that changes drops its owner's
+     * cached entitlements.
+     */
+    private function joinEntitlements(): void
+    {
+        if (! class_exists(EntitlementRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(EntitlementRegistry::class);
+        $registry->grantSource($this->app->make(MembershipGrantSource::class));
+        $registry->keySource(new MembershipEntitlementKeys);
+
+        Models::class('membership_plan')::observe(SyncPlanDefinitions::class);
+        Event::listen(MembershipChanged::class, [BumpEntitlementsCache::class, 'handle']);
+    }
+
+    /**
+     * With the forums package installed, announcements can target members. The paid-access check
+     * is not bound here, because the host decides what "paid" means; `MembershipsPaidAccess` is
+     * ready to bind.
+     */
+    private function joinForums(): void
+    {
+        if (class_exists(TargetingRules::class)) {
+            $this->app->make(TargetingRules::class)->register($this->app->make(MembershipRule::class));
+        }
     }
 }

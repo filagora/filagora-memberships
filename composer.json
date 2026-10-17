@@ -17,6 +17,8 @@
         "php": "^8.4"
     },
     "require-dev": {
+        "filagora/filagora-entitlements": "^0.2.2",
+        "filagora/filagora-forums": "^0.6",
         "larastan/larastan": "^3.0",
         "laravel/pint": "^1.0",
         "orchestra/testbench": "^11.0",
@@ -52,5 +54,9 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "suggest": {
+        "filagora/filagora-entitlements": "Memberships grant entitlements, and plans feed the definitions list.",
+        "filagora/filagora-forums": "Announcements can target members, and MembershipsPaidAccess answers the paid-access check."
+    }
 }
