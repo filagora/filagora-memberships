@@ -155,3 +155,21 @@ it('logs whether the body survives being decoded and encoded again, so a failed 
         ->and($lossy['round_trip_is_lossless'])->toBeFalse()
         ->and($lossy['raw_body_crc32'])->not->toBe($lossy['reserialized_crc32']);
 });
+
+it('acts on each kind of subscription event and on no other', function (string $eventType, bool $acts) {
+    verifiedBy();
+    $membership = PayPal::membership($this->plan, ['provider_subscription_id' => 'I-1']);
+
+    $this->handler->handle(PayPal::headers(), PayPal::event('WH-EVT', $eventType, PayPal::subscription('I-1')));
+
+    expect($membership->refresh()->meta['event_type'] ?? null)->toBe($acts ? $eventType : null);
+})->with([
+    ['BILLING.SUBSCRIPTION.CREATED', true],
+    ['BILLING.SUBSCRIPTION.ACTIVATED', true],
+    ['BILLING.SUBSCRIPTION.UPDATED', true],
+    ['BILLING.SUBSCRIPTION.CANCELLED', true],
+    ['BILLING.SUBSCRIPTION.EXPIRED', true],
+    ['BILLING.SUBSCRIPTION.SUSPENDED', true],
+    ['BILLING.SUBSCRIPTION.PAYMENT.FAILED', false],
+    ['PAYMENT.SALE.COMPLETED', false],
+]);

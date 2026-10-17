@@ -209,3 +209,13 @@ it('refuses to link what cannot be linked', function () {
         ->and(subRefusal(fn () => $this->subscriptions->link($user, 'I-STRANGE')))->toBe(SubscriptionRefusal::UNKNOWN_PLAN)
         ->and(UserMembership::count())->toBe(1);
 });
+
+it('goes by the cancel event when the resource it carries still says active', function () {
+    $membership = PayPal::membership($this->plan, ['provider_subscription_id' => 'I-1', 'status' => 'active', 'current_period_end' => now()->addDays(5)]);
+
+    $this->subscriptions->sync(PayPal::subscription('I-1', ['status' => 'ACTIVE', 'billing_info' => ['next_billing_time' => null]]), 'BILLING.SUBSCRIPTION.CANCELLED');
+    $membership->refresh();
+
+    expect($membership->status)->toBe('canceling')
+        ->and($membership->ends_at->equalTo(now()->addDays(5)))->toBeTrue();
+});
