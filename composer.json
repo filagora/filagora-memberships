@@ -1,0 +1,56 @@
+{
+    "name": "filagora/filagora-memberships",
+    "description": "Memberships and billing for Filagora: plans, prices, member subscriptions, PayPal checkout and webhooks, and entitlement grants.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "filament",
+        "filagora",
+        "memberships",
+        "billing",
+        "paypal"
+    ],
+    "require": {
+        "filagora/filagora-core": "^0.2.2",
+        "filament/filament": "^5.0",
+        "php": "^8.4"
+    },
+    "require-dev": {
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.0",
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Filagora\\Memberships\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Filagora\\Memberships\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/pest",
+        "lint": "vendor/bin/pint",
+        "analyse": "vendor/bin/phpstan analyse --memory-limit=1G"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Filagora\\Memberships\\MembershipsServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
