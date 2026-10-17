@@ -7,6 +7,8 @@ namespace Filagora\Memberships\Tests;
 use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
 use BladeUI\Icons\BladeIconsServiceProvider;
 use Filagora\Core\CoreServiceProvider;
+use Filagora\Entitlements\EntitlementsServiceProvider;
+use Filagora\Forums\ForumsServiceProvider;
 use Filagora\Memberships\MembershipsServiceProvider;
 use Filagora\Memberships\Tests\Support\TestSupportServiceProvider;
 use Filagora\Memberships\Tests\Support\TestUser;
@@ -40,6 +42,8 @@ abstract class TestCase extends Orchestra
             TablesServiceProvider::class,
             WidgetsServiceProvider::class,
             CoreServiceProvider::class,
+            EntitlementsServiceProvider::class,
+            ForumsServiceProvider::class,
             MembershipsServiceProvider::class,
             TestSupportServiceProvider::class,
         ];
