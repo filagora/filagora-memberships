@@ -51,4 +51,23 @@ return [
         'cancel_url' => null,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | PayPal
+    |--------------------------------------------------------------------------
+    |
+    | Credentials of a PayPal REST app with the Subscriptions feature switched on. PayPal is only
+    | offered once the client id, secret and webhook id are all set. `base_url` is the sandbox
+    | API until you point it at the live one (https://api-m.paypal.com). `log_channel` is the
+    | log channel for webhook problems (the default channel when empty).
+    |
+    */
+    'paypal' => [
+        'client_id' => env('PAYPAL_CLIENT_ID'),
+        'client_secret' => env('PAYPAL_CLIENT_SECRET'),
+        'webhook_id' => env('PAYPAL_WEBHOOK_ID'),
+        'base_url' => env('PAYPAL_BASE_URL', 'https://api-m.sandbox.paypal.com'),
+        'log_channel' => env('PAYPAL_LOG_CHANNEL'),
+    ],
+
 ];
