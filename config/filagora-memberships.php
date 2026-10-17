@@ -27,4 +27,28 @@ return [
         'billing_event_log' => BillingEventLog::class,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Subscription name
+    |--------------------------------------------------------------------------
+    |
+    | The prefix of the name a plan's subscription goes by, followed by the plan code.
+    |
+    */
+    'subscription_prefix' => env('MEMBERSHIPS_SUBSCRIPTION_PREFIX', 'membership'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Checkout return pages
+    |--------------------------------------------------------------------------
+    |
+    | Where the provider sends a person after they approve or abandon a purchase: a URL or the
+    | name of a route. `subscribe()` takes the same two values as arguments, which win.
+    |
+    */
+    'checkout' => [
+        'return_url' => null,
+        'cancel_url' => null,
+    ],
+
 ];
