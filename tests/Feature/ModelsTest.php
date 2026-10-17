@@ -100,6 +100,9 @@ it('is ready for checkout when free, or when active with a provider and a price 
     priceOf($paid, 'USD', '5.00');
     expect($paid->isCheckoutReady())->toBeFalse();
 
+    $paid->prices()->update(['provider_plan_id' => '']);
+    expect($paid->isCheckoutReady())->toBeFalse();
+
     $paid->prices()->update(['provider_plan_id' => 'P-1']);
     expect($paid->isCheckoutReady())->toBeTrue();
 
