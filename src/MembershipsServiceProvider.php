@@ -6,6 +6,8 @@ namespace Filagora\Memberships;
 
 use Filagora\Core\Modules\Module;
 use Filagora\Core\Modules\ModuleRegistry;
+use Filagora\Core\Schema\PackageSchema;
+use Filagora\Core\Schema\SchemaRegistry;
 use Illuminate\Support\ServiceProvider;
 
 class MembershipsServiceProvider extends ServiceProvider
@@ -19,6 +21,10 @@ class MembershipsServiceProvider extends ServiceProvider
     {
         $this->app->make(ModuleRegistry::class)->register(
             new Module('memberships', 'Filagora Memberships', 'filagora/filagora-memberships', requires: ['core']),
+        );
+
+        $this->app->make(SchemaRegistry::class)->register(
+            PackageSchema::fromFile('memberships', __DIR__.'/../database/schema.php', __DIR__.'/../database/migrations'),
         );
 
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'filagora-memberships');
