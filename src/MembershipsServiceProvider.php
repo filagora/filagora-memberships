@@ -6,8 +6,12 @@ namespace Filagora\Memberships;
 
 use Filagora\Core\Modules\Module;
 use Filagora\Core\Modules\ModuleRegistry;
+use Filagora\Core\Navigation\NavigationGroupDefinition;
+use Filagora\Core\Navigation\NavigationGroupRegistry;
 use Filagora\Core\Schema\PackageSchema;
 use Filagora\Core\Schema\SchemaRegistry;
+use Filagora\Core\Support\GateAbilities;
+use Filagora\Entitlements\Registry\Definition;
 use Filagora\Entitlements\Registry\EntitlementRegistry;
 use Filagora\Forums\Targeting\TargetingRules;
 use Filagora\Memberships\Billing\ProviderRegistry;
@@ -55,6 +59,8 @@ class MembershipsServiceProvider extends ServiceProvider
 
         $this->app->make(ProviderRegistry::class)->register($this->app->make(PayPalProvider::class));
 
+        $this->registerNavigationGroup();
+        GateAbilities::define('filagora-memberships.gates');
         $this->announceMembershipChanges();
         $this->joinEntitlements();
         $this->joinForums();
@@ -110,6 +116,11 @@ class MembershipsServiceProvider extends ServiceProvider
         }
 
         $registry = $this->app->make(EntitlementRegistry::class);
+
+        foreach (GateAbilities::keys('filagora-memberships.gates') as $entitlement) {
+            $registry->define(new Definition($entitlement, wildcardChildren: false));
+        }
+
         $registry->grantSource($this->app->make(MembershipGrantSource::class));
         $registry->keySource(new MembershipEntitlementKeys);
 
@@ -127,5 +138,15 @@ class MembershipsServiceProvider extends ServiceProvider
         if (class_exists(TargetingRules::class)) {
             $this->app->make(TargetingRules::class)->register($this->app->make(MembershipRule::class));
         }
+    }
+
+    private function registerNavigationGroup(): void
+    {
+        $this->app->make(NavigationGroupRegistry::class)->register(new NavigationGroupDefinition(
+            key: 'memberships',
+            label: fn (): string => __('filagora-memberships::messages.navigation_groups.memberships'),
+            icon: 'heroicon-o-credit-card',
+            sort: 25,
+        ));
     }
 }

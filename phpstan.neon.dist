@@ -8,3 +8,7 @@ parameters:
     paths:
         - src
         - config
+    ignoreErrors:
+        # Traits meant for the host application's own classes.
+        -
+            identifier: trait.unused
