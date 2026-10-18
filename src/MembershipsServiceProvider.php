@@ -8,6 +8,8 @@ use Filagora\Core\Modules\Module;
 use Filagora\Core\Modules\ModuleRegistry;
 use Filagora\Core\Navigation\NavigationGroupDefinition;
 use Filagora\Core\Navigation\NavigationGroupRegistry;
+use Filagora\Core\Privacy\PrivacyContributorRegistry;
+use Filagora\Core\Privacy\RetentionRuleRegistry;
 use Filagora\Core\Schema\PackageSchema;
 use Filagora\Core\Schema\SchemaRegistry;
 use Filagora\Core\Support\GateAbilities;
@@ -22,6 +24,8 @@ use Filagora\Memberships\Entitlements\SyncPlanDefinitions;
 use Filagora\Memberships\Events\MembershipChanged;
 use Filagora\Memberships\Forums\MembershipRule;
 use Filagora\Memberships\Models\UserMembership;
+use Filagora\Memberships\Privacy\BillingEventPayloadsRetention;
+use Filagora\Memberships\Privacy\MembershipsDataContributor;
 use Filagora\Memberships\Providers\PayPal\PayPalClient;
 use Filagora\Memberships\Providers\PayPal\PayPalProvider;
 use Filagora\Memberships\Providers\PayPal\PayPalSubscriptions;
@@ -30,6 +34,7 @@ use Filagora\Memberships\Services\BillingEvents;
 use Filagora\Memberships\Services\Memberships;
 use Filagora\Memberships\Support\Models;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 class MembershipsServiceProvider extends ServiceProvider
@@ -58,6 +63,13 @@ class MembershipsServiceProvider extends ServiceProvider
         );
 
         $this->app->make(ProviderRegistry::class)->register($this->app->make(PayPalProvider::class));
+
+        $this->app->make(PrivacyContributorRegistry::class)->register($this->app->make(MembershipsDataContributor::class));
+        $this->app->make(RetentionRuleRegistry::class)->register(new BillingEventPayloadsRetention);
+
+        if (config('filagora-memberships.routes.enabled', true)) {
+            $this->registerWebhookRoute();
+        }
 
         $this->registerNavigationGroup();
         GateAbilities::define('filagora-memberships.gates');
@@ -148,5 +160,12 @@ class MembershipsServiceProvider extends ServiceProvider
             icon: 'heroicon-o-credit-card',
             sort: 25,
         ));
+    }
+
+    private function registerWebhookRoute(): void
+    {
+        Route::prefix((string) config('filagora-memberships.routes.prefix', ''))
+            ->middleware((array) config('filagora-memberships.routes.middleware', []))
+            ->group(__DIR__.'/../routes/webhooks.php');
     }
 }

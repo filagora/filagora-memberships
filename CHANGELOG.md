@@ -7,6 +7,9 @@ All notable changes to this package are documented here. The format follows
 
 ### Added
 
+- The PayPal webhook route (`POST /paypal/webhook`, named `filagora-memberships.webhooks.paypal`) and `PayPalWebhookController`: outside the web group (no session, no CSRF token), rate limited, answers 400 to anything PayPal does not vouch for so PayPal sends it again. Its path, prefix and middleware are under `routes` in the config, and `routes.enabled` switches it off.
+- Privacy: a contributor that puts a person's memberships, and the billing events received about them, into their data export, and on erasure keeps the memberships but takes the subscriber's and payer's details out of those events and the payer id out of the membership. It does not cancel a subscription still being billed at a provider.
+- The retention rule `memberships.billing_event_payloads`: with `retention.event_payload_days` set, events older than that lose the subscriber's and payer's details (the event, its type and outcome stay). Off by default; the forum this was extracted from kept them for ever.
 - The Filament plugin `FilagoraMembershipsPlugin` with a `memberships` navigation group, and two screens:
   - **Membership plans**: the form with a price per currency, and a header action that creates the plan's catalogue product and billing plans at any provider that creates its own (`SyncsPlans`; PayPal does). Provider ids are typed in only for providers that do not.
   - **Billing events**: read-only, with failed events first, a navigation badge for the failures, filters, and links that open the events about one subscription.
