@@ -10,6 +10,7 @@ use Filagora\Core\CoreServiceProvider;
 use Filagora\Entitlements\EntitlementsServiceProvider;
 use Filagora\Forums\ForumsServiceProvider;
 use Filagora\Memberships\MembershipsServiceProvider;
+use Filagora\Memberships\Tests\Support\TestPanelProvider;
 use Filagora\Memberships\Tests\Support\TestSupportServiceProvider;
 use Filagora\Memberships\Tests\Support\TestUser;
 use Filament\Actions\ActionsServiceProvider;
@@ -45,6 +46,7 @@ abstract class TestCase extends Orchestra
             EntitlementsServiceProvider::class,
             ForumsServiceProvider::class,
             MembershipsServiceProvider::class,
+            TestPanelProvider::class,
             TestSupportServiceProvider::class,
         ];
     }

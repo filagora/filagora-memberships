@@ -70,4 +70,19 @@ return [
         'log_channel' => env('PAYPAL_LOG_CHANNEL'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Gates
+    |--------------------------------------------------------------------------
+    |
+    | Gate abilities guarding the screens, each mapped to the entitlement key that grants it.
+    | `manage` covers plans, prices and acting on a person's memberships; `view_billing` the
+    | billing provider event log. Remap the keys to your own entitlements.
+    |
+    */
+    'gates' => [
+        'filagora.memberships.manage' => 'filagora.memberships.manage',
+        'filagora.memberships.view_billing' => 'filagora.memberships.view_billing',
+    ],
+
 ];

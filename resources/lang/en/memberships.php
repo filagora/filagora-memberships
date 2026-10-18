@@ -14,5 +14,6 @@ return [
         'already_linked' => 'This subscription is already linked to a membership.',
         'unknown_subscription' => 'The payment provider has no such subscription.',
         'unknown_plan' => 'No membership plan is set up for that subscription.',
+        'end_date_required' => 'An end date is required to mark a membership as canceling.',
     ],
 ];

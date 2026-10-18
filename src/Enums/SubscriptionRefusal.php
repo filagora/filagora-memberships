@@ -19,6 +19,7 @@ enum SubscriptionRefusal: string
     case ALREADY_LINKED = 'already_linked';
     case UNKNOWN_SUBSCRIPTION = 'unknown_subscription';
     case UNKNOWN_PLAN = 'unknown_plan';
+    case END_DATE_REQUIRED = 'end_date_required';
 
     public function message(): string
     {
