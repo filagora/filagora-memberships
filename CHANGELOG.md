@@ -5,6 +5,10 @@ All notable changes to this package are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-18
+
+First release: memberships and billing, extracted from the Zen Cart support site. The four tables match that site's tables column for column and index for index (checked against a structure-only dump of its production database), so an existing site can adopt them with `filagora:adopt`.
+
 ### Added
 
 - The PayPal webhook route (`POST /paypal/webhook`, named `filagora-memberships.webhooks.paypal`) and `PayPalWebhookController`: outside the web group (no session, no CSRF token), rate limited, answers 400 to anything PayPal does not vouch for so PayPal sends it again. Its path, prefix and middleware are under `routes` in the config, and `routes.enabled` switches it off.
