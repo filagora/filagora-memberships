@@ -92,11 +92,13 @@ it('does not take an event for a similar subscription id', function () {
     PayPal::membership($this->plan, ['user_id' => $alice->id, 'provider_subscription_id' => 'I-1']);
     $other = personalEvent('WH-X', 'I-10');
     $underscore = personalEvent('WH-Y', 'IX1');
+    $namesIt = personalEvent('I-1', 'I-77');
 
     $this->contributor->erase($alice);
 
     expect($other->refresh()->payload['resource'])->toHaveKey('subscriber')
-        ->and($underscore->refresh()->payload['resource'])->toHaveKey('subscriber');
+        ->and($underscore->refresh()->payload['resource'])->toHaveKey('subscriber')
+        ->and($namesIt->refresh()->payload['resource'])->toHaveKey('subscriber');
 });
 
 it('keeps payloads for ever unless a window is set', function () {
