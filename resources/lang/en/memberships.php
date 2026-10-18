@@ -16,4 +16,6 @@ return [
         'unknown_plan' => 'No membership plan is set up for that subscription.',
         'end_date_required' => 'An end date is required to mark a membership as canceling.',
     ],
+
+    'webhook_invalid' => 'The webhook delivery could not be processed.',
 ];

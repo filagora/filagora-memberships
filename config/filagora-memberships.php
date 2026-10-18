@@ -85,4 +85,35 @@ return [
         'filagora.memberships.view_billing' => 'filagora.memberships.view_billing',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Webhook route
+    |--------------------------------------------------------------------------
+    |
+    | `POST {prefix}/{path}` receives PayPal's webhook deliveries, so it is outside the web
+    | middleware group (no session, no CSRF token) and checks each delivery with PayPal instead.
+    | Switch it off to mount `PayPalWebhookController` yourself.
+    |
+    */
+    'routes' => [
+        'enabled' => true,
+        'prefix' => '',
+        'path' => 'paypal/webhook',
+        'middleware' => ['throttle:120,1'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Retention
+    |--------------------------------------------------------------------------
+    |
+    | Billing events keep the provider's payload, which holds the subscriber's and payer's name
+    | and email. `event_payload_days` is how long to keep those details: older events lose them
+    | (the event, its type and its outcome stay). Null keeps them for ever.
+    |
+    */
+    'retention' => [
+        'event_payload_days' => null,
+    ],
+
 ];
