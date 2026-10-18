@@ -8,6 +8,7 @@ use Filagora\Entitlements\Services\EntitlementResolver;
 use Filagora\Forums\Targeting\TargetingRules;
 use Filagora\Forums\Targeting\Viewer;
 use Filagora\Memberships\Entitlements\MembershipEntitlementKeys;
+use Filagora\Memberships\Forums\MembershipRule;
 use Filagora\Memberships\Forums\MembershipsPaidAccess;
 use Filagora\Memberships\Models\MembershipPlan;
 use Filagora\Memberships\Models\UserMembership;
@@ -178,4 +179,30 @@ it('counts only current memberships for the targeting rule', function () {
 
     expect($rules->passes([['type' => 'membership']], new Viewer($this->user)))->toBeFalse()
         ->and(app(Memberships::class)->hasActive($this->user))->toBeFalse();
+});
+
+it('adds its targeting rule when the registry is first used, not while the application boots', function () {
+    app()->forgetInstance(TargetingRules::class);
+
+    expect(app()->resolved(TargetingRules::class))->toBeFalse()
+        ->and(app(TargetingRules::class)->has('membership'))->toBeTrue();
+});
+
+it('keeps a membership targeting rule that was registered first', function () {
+    $custom = new class(app(Memberships::class)) extends MembershipRule
+    {
+        public function label(): string
+        {
+            return 'The host\'s own';
+        }
+    };
+
+    app()->forgetInstance(TargetingRules::class);
+    app()->extend(TargetingRules::class, function (TargetingRules $rules) use ($custom): TargetingRules {
+        $rules->register($custom);
+
+        return $rules;
+    });
+
+    expect(app(TargetingRules::class)->all()['membership']->label())->toBe('The host\'s own');
 });
