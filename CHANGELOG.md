@@ -7,6 +7,12 @@ All notable changes to this package are documented here. The format follows
 
 ### Added
 
+- The Filament plugin `FilagoraMembershipsPlugin` with a `memberships` navigation group, and two screens:
+  - **Membership plans**: the form with a price per currency, and a header action that creates the plan's catalogue product and billing plans at any provider that creates its own (`SyncsPlans`; PayPal does). Provider ids are typed in only for providers that do not.
+  - **Billing events**: read-only, with failed events first, a navigation badge for the failures, filters, and links that open the events about one subscription.
+- `UserMembershipsRelationManager` for the user screen: activate a free plan, link a subscription from the old site, mark canceling, mark canceled, end now, and open a membership's billing events.
+- `MembershipTransitions` (the staff changes behind those actions, recorded with who made them) and the `HasMemberships` trait for the user model (`userMemberships`, `membershipPlans`, `hasActiveMembership`, `hasActiveMembershipForPlan`).
+- The abilities `filagora.memberships.manage` and `filagora.memberships.view_billing`, mapped to entitlement keys under `gates` in the config.
 - With `filagora-entitlements` installed: memberships are a source of entitlements (`MembershipGrantSource`: a current membership grants what it was started with, or what its plan grants when it has no snapshot); every plan's keys feed the definitions list (`MembershipEntitlementKeys`), and saving a plan gives its keys a definition; a membership that changes drops its owner's cached entitlements.
 - With `filagora-forums` installed: the `membership` announcement targeting rule (any current membership, or one plan; negatable), and `MembershipsPaidAccess`, a `PaidAccessCheck` ready to bind (it is not bound for you, because what counts as paid is the host's decision).
 - PayPal as a billing provider (`paypal`): subscription checkout, cancel, and `syncPlan`, which creates a plan's catalogue product and a billing plan for each price that has none. The credentials are the usual `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` and `PAYPAL_BASE_URL`, read under `paypal` in the config; PayPal is offered only when the first three are set. The access token is kept until shortly before it expires instead of being requested for every call.

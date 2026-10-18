@@ -155,8 +155,10 @@ it('offers to sync a plan whose provider creates its own plans, and shows what i
 
     Livewire::test(EditMembershipPlan::class, ['record' => $plan->getRouteKey()])
         ->assertActionVisible('syncPlans')
+        ->assertFormSet(['provider_product_id' => null])
         ->callAction('syncPlans')
-        ->assertNotified(__('filagora-memberships::messages.plans.sync_done', ['provider' => 'Syncing']));
+        ->assertNotified(__('filagora-memberships::messages.plans.sync_done', ['provider' => 'Syncing']))
+        ->assertFormSet(['provider_product_id' => 'PROD-SYNC']);
 
     expect($plan->refresh()->provider_product_id)->toBe('PROD-SYNC')
         ->and($plan->priceFor('EUR')->provider_plan_id)->toBe('P-EUR-SYNC');
