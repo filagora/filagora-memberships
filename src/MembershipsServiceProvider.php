@@ -147,9 +147,18 @@ class MembershipsServiceProvider extends ServiceProvider
      */
     private function joinForums(): void
     {
-        if (class_exists(TargetingRules::class)) {
-            $this->app->make(TargetingRules::class)->register($this->app->make(MembershipRule::class));
+        if (! class_exists(TargetingRules::class)) {
+            return;
         }
+
+        // When the registry is first used, not now: building it needs the host's access checker,
+        // which may not be bound while the application boots. A rule of the same name that was
+        // registered first (the host's own) is kept.
+        $this->callAfterResolving(TargetingRules::class, function (TargetingRules $rules): void {
+            if (! $rules->has('membership')) {
+                $rules->register($this->app->make(MembershipRule::class));
+            }
+        });
     }
 
     private function registerNavigationGroup(): void

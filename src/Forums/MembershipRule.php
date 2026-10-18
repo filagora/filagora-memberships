@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  * Announcement targeting: the viewer has (or, negated, has not) a current membership, optionally
  * on one plan. A guest never passes.
  */
-final class MembershipRule implements TargetingRule
+class MembershipRule implements TargetingRule
 {
     public function __construct(private readonly Memberships $memberships) {}
 

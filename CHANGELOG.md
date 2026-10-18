@@ -5,6 +5,13 @@ All notable changes to this package are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-18
+
+### Fixed
+
+- The `membership` announcement targeting rule is added when the forums package's rule registry is first used, not while the application boots. Building that registry needs the host's access checker, so an application that had not bound one yet (a static-analysis bootstrap, for one) failed to start. A `membership` rule registered first, such as a host's own, is kept.
+- `Filagora\Memberships\Forums\MembershipRule` is no longer final, so a host can extend it.
+
 ## [0.1.0] - 2026-10-18
 
 First release: memberships and billing, extracted from the Zen Cart support site. The four tables match that site's tables column for column and index for index (checked against a structure-only dump of its production database), so an existing site can adopt them with `filagora:adopt`.
