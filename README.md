@@ -12,6 +12,31 @@ Requires [`filagora/filagora-core`](https://github.com/filagora/filagora-core); 
 
 ## What it provides
 
+### Overview
+
+Memberships and billing for Filagora: plans, prices, member subscriptions, PayPal checkout and webhooks, and entitlement grants.
+
+### Tables
+
+`membership_plans`, `membership_plan_prices`, `user_memberships`, `billing_event_logs`, prefixed `filagora_` by default. A site that already has them can run `php artisan filagora:adopt` instead of migrating.
+
+### Commands
+
+This package adds no commands.
+
+### Events
+
+- `MembershipChanged`
+
+### Access
+
+| Ability | Entitlement key |
+| --- | --- |
+| `filagora.memberships.manage` | `filagora.memberships.manage` |
+| `filagora.memberships.view_billing` | `filagora.memberships.view_billing` |
+
+### Using it
+
 - **Plans and prices.** A plan has a code, a name, a billing interval, a provider, the entitlements it
   grants and a feature list. A paid plan has one price per currency, each with the provider's own id.
   A free plan has no price. Staff manage them in Filament; the PayPal catalogue product and billing
@@ -38,7 +63,7 @@ Requires [`filagora/filagora-core`](https://github.com/filagora/filagora-core); 
   export; erasure takes their details out of those events. A retention window can do the same for old
   events.
 
-### PayPal
+#### PayPal
 
 Create a REST app in the PayPal developer dashboard with the **Subscriptions** feature switched on, and
 set:
@@ -61,7 +86,7 @@ catalogue product and a billing plan per currency are created at PayPal and thei
 price is locked; to change it, remove the row, save, add a new one and sync again (existing
 subscribers keep what they agreed to).
 
-### Using it from your billing page
+#### Using it from your billing page
 
 ```php
 $result = app(\Filagora\Memberships\Services\Memberships::class)
@@ -73,14 +98,14 @@ return $result->requiresRedirect() ? redirect()->away($result->redirectUrl) : ba
 The return pages can also be set once under `checkout` in the config (a URL or a route name). Catch
 `SubscriptionRefused` and show `$refused->getMessage()`.
 
-### Other payment providers
+#### Other payment providers
 
 Implement `Filagora\Memberships\Contracts\BillingProvider` (and `SyncsPlans` if the provider's plans
 are created from ours) and register it with the `ProviderRegistry`; a plan names its provider by key.
 `BillingEvents` is the idempotent record to log the provider's webhook events in. Stripe is not
 included.
 
-### Adopting an existing site
+#### Adopting an existing site
 
 The four tables (`membership_plans`, `membership_plan_prices`, `user_memberships`,
 `billing_event_logs`) match the forum this package was extracted from column for column and index for
@@ -88,7 +113,7 @@ index. Run `php artisan filagora:adopt --package=memberships` to record the migr
 checks the tables against the package's snapshot first and refuses on any difference. Cashier's
 `subscriptions` tables are not part of this package.
 
-### Differences from the forum it was extracted from
+#### Differences from the forum it was extracted from
 
 - A PayPal subscription that no membership holds, and that carries no `custom_id` from this package, is
   ignored. The forum attached it to the latest PayPal membership of the same plan, which could give one
