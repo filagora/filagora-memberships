@@ -10,7 +10,7 @@ Requires [`filagora/filagora-core`](https://github.com/filagora/filagora-core); 
 > member-facing frontend: the billing page and the checkout return pages are yours. PayPal is the
 > only payment provider included; the `BillingProvider` contract is there for others.
 
-## What it does
+## What it provides
 
 - **Plans and prices.** A plan has a code, a name, a billing interval, a provider, the entitlements it
   grants and a feature list. A paid plan has one price per currency, each with the provider's own id.
@@ -37,6 +37,72 @@ Requires [`filagora/filagora-core`](https://github.com/filagora/filagora-core); 
 - **Privacy.** A person's memberships and the events received about them are included in their data
   export; erasure takes their details out of those events. A retention window can do the same for old
   events.
+
+### PayPal
+
+Create a REST app in the PayPal developer dashboard with the **Subscriptions** feature switched on, and
+set:
+
+```dotenv
+PAYPAL_CLIENT_ID=
+PAYPAL_CLIENT_SECRET=
+PAYPAL_WEBHOOK_ID=
+PAYPAL_BASE_URL=https://api-m.paypal.com   # the sandbox API when unset
+```
+
+PayPal is offered only when the first three are set. In the dashboard, point a webhook at
+`https://your-site/paypal/webhook` and subscribe it to the `BILLING.SUBSCRIPTION.*` events (created,
+activated, updated, cancelled, expired, suspended). The route is registered for you, outside the web
+group (no session, no CSRF token), rate limited, and checks every delivery with PayPal. Change or
+switch it off under `routes` in the config to mount `PayPalWebhookController` yourself.
+
+Create a plan, add a price for each currency, and press **Sync PayPal plans** on its edit page: the
+catalogue product and a billing plan per currency are created at PayPal and their ids stored. A synced
+price is locked; to change it, remove the row, save, add a new one and sync again (existing
+subscribers keep what they agreed to).
+
+### Using it from your billing page
+
+```php
+$result = app(\Filagora\Memberships\Services\Memberships::class)
+    ->subscribe($request->user(), $plan, $request->input('currency'), route('billing.done'), route('billing.cancelled'));
+
+return $result->requiresRedirect() ? redirect()->away($result->redirectUrl) : back();
+```
+
+The return pages can also be set once under `checkout` in the config (a URL or a route name). Catch
+`SubscriptionRefused` and show `$refused->getMessage()`.
+
+### Other payment providers
+
+Implement `Filagora\Memberships\Contracts\BillingProvider` (and `SyncsPlans` if the provider's plans
+are created from ours) and register it with the `ProviderRegistry`; a plan names its provider by key.
+`BillingEvents` is the idempotent record to log the provider's webhook events in. Stripe is not
+included.
+
+### Adopting an existing site
+
+The four tables (`membership_plans`, `membership_plan_prices`, `user_memberships`,
+`billing_event_logs`) match the forum this package was extracted from column for column and index for
+index. Run `php artisan filagora:adopt --package=memberships` to record the migration as run; it
+checks the tables against the package's snapshot first and refuses on any difference. Cashier's
+`subscriptions` tables are not part of this package.
+
+### Differences from the forum it was extracted from
+
+- A PayPal subscription that no membership holds, and that carries no `custom_id` from this package, is
+  ignored. The forum attached it to the latest PayPal membership of the same plan, which could give one
+  person's subscription (and its access) to someone else. Use **Link subscription** for subscriptions
+  made before this package.
+- A cancelled PayPal subscription keeps its access to the end of the period that was paid for. The
+  forum's cancel webhook ended it at once, undoing the "canceling" state it had just set.
+- With no price marked as the default, the default is the first one added, not whichever row the
+  database returned first.
+- The access token is cached until shortly before it expires.
+
+## Requirements
+
+PHP 8.4, Laravel 13 and Filament 5. Tested against MariaDB 11.4. Requires [`filagora/filagora-core`](https://github.com/filagora/filagora-core).
 
 ## Install
 
@@ -70,67 +136,15 @@ Two abilities guard the screens, each mapped to an entitlement key under `gates`
 `config/filagora-memberships.php`: `filagora.memberships.manage` (plans, prices, acting on a person's
 memberships) and `filagora.memberships.view_billing` (the billing event log).
 
-## PayPal
+## Configuration
 
-Create a REST app in the PayPal developer dashboard with the **Subscriptions** feature switched on, and
-set:
+`config/filagora-memberships.php` is merged with the host's copy, so list only what
+differs. Publish it with `php artisan vendor:publish --tag=filagora-memberships-config`.
 
-```dotenv
-PAYPAL_CLIENT_ID=
-PAYPAL_CLIENT_SECRET=
-PAYPAL_WEBHOOK_ID=
-PAYPAL_BASE_URL=https://api-m.paypal.com   # the sandbox API when unset
-```
+## Extending
 
-PayPal is offered only when the first three are set. In the dashboard, point a webhook at
-`https://your-site/paypal/webhook` and subscribe it to the `BILLING.SUBSCRIPTION.*` events (created,
-activated, updated, cancelled, expired, suspended). The route is registered for you, outside the web
-group (no session, no CSRF token), rate limited, and checks every delivery with PayPal. Change or
-switch it off under `routes` in the config to mount `PayPalWebhookController` yourself.
-
-Create a plan, add a price for each currency, and press **Sync PayPal plans** on its edit page: the
-catalogue product and a billing plan per currency are created at PayPal and their ids stored. A synced
-price is locked; to change it, remove the row, save, add a new one and sync again (existing
-subscribers keep what they agreed to).
-
-## Using it from your billing page
-
-```php
-$result = app(\Filagora\Memberships\Services\Memberships::class)
-    ->subscribe($request->user(), $plan, $request->input('currency'), route('billing.done'), route('billing.cancelled'));
-
-return $result->requiresRedirect() ? redirect()->away($result->redirectUrl) : back();
-```
-
-The return pages can also be set once under `checkout` in the config (a URL or a route name). Catch
-`SubscriptionRefused` and show `$refused->getMessage()`.
-
-## Other payment providers
-
-Implement `Filagora\Memberships\Contracts\BillingProvider` (and `SyncsPlans` if the provider's plans
-are created from ours) and register it with the `ProviderRegistry`; a plan names its provider by key.
-`BillingEvents` is the idempotent record to log the provider's webhook events in. Stripe is not
-included.
-
-## Adopting an existing site
-
-The four tables (`membership_plans`, `membership_plan_prices`, `user_memberships`,
-`billing_event_logs`) match the forum this package was extracted from column for column and index for
-index. Run `php artisan filagora:adopt --package=memberships` to record the migration as run; it
-checks the tables against the package's snapshot first and refuses on any difference. Cashier's
-`subscriptions` tables are not part of this package.
-
-## Differences from the forum it was extracted from
-
-- A PayPal subscription that no membership holds, and that carries no `custom_id` from this package, is
-  ignored. The forum attached it to the latest PayPal membership of the same plan, which could give one
-  person's subscription (and its access) to someone else. Use **Link subscription** for subscriptions
-  made before this package.
-- A cancelled PayPal subscription keeps its access to the end of the period that was paid for. The
-  forum's cancel webhook ended it at once, undoing the "canceling" state it had just set.
-- With no price marked as the default, the default is the first one added, not whichever row the
-  database returned first.
-- The access token is cached until shortly before it expires.
+Extend through documented contracts, events and registries. Anything not documented
+is `@internal`.
 
 ## Testing
 
@@ -138,7 +152,14 @@ checks the tables against the package's snapshot first and refuses on any differ
 composer test
 ```
 
-Tests run against a real MariaDB database named `testing`; PayPal is faked at the HTTP layer.
+Tests run against a real MariaDB, never SQLite, so engine behaviour (FULLTEXT,
+`ONLY_FULL_GROUP_BY`, collation) matches production. Host and credentials come from
+your environment; the database is always named `testing`, never your development one.
+
+## Local development (DDEV)
+
+`.ddev/` is included. `ddev start` creates both `db` and `testing` (run `ddev restart` once
+if `testing` is missing), then `ddev exec vendor/bin/pest`.
 
 ## Licence
 
