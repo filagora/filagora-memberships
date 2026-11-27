@@ -8,6 +8,7 @@ return [
     ],
 
     'plans' => [
+        'refused_entitlements' => 'A plan cannot grant these keys: :keys. Wildcards and reserved keys are not allowed.',
         'navigation_label' => 'Membership plans',
         'model_label' => 'membership plan',
         'plural_model_label' => 'membership plans',

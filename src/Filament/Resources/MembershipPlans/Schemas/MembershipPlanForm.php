@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Filagora\Memberships\Filament\Resources\MembershipPlans\Schemas;
 
+use Closure;
 use Filagora\Entitlements\Models\EntitlementDefinition;
 use Filagora\Memberships\Billing\ProviderRegistry;
 use Filagora\Memberships\Contracts\SyncsPlans;
+use Filagora\Memberships\Entitlements\PlanEntitlements;
 use Filagora\Memberships\Enums\BillingInterval;
 use Filagora\Memberships\Support\Currencies;
 use Filament\Forms\Components\Repeater;
@@ -63,8 +65,18 @@ class MembershipPlanForm
                             ->default(0),
                         TagsInput::make('entitlements')
                             ->suggestions(fn (): array => class_exists(EntitlementDefinition::class)
-                                ? EntitlementDefinition::query()->orderBy('key')->pluck('key')->all()
+                                ? array_values(array_filter(
+                                    EntitlementDefinition::query()->orderBy('key')->pluck('key')->all(),
+                                    PlanEntitlements::allows(...),
+                                ))
                                 : [])
+                            ->rule(static fn (): Closure => static function (string $attribute, mixed $value, Closure $fail): void {
+                                $refused = PlanEntitlements::refused((array) $value);
+
+                                if ($refused !== []) {
+                                    $fail(__('filagora-memberships::messages.plans.refused_entitlements', ['keys' => implode(', ', $refused)]));
+                                }
+                            })
                             ->columnSpanFull(),
                         TagsInput::make('feature_list')
                             ->columnSpanFull(),

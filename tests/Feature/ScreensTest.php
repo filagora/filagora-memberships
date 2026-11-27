@@ -78,6 +78,30 @@ it('lists plans', function () {
     Livewire::test(ListMembershipPlans::class)->assertCanSeeTableRecords($plans);
 });
 
+it('refuses to save a plan with a wildcard or a reserved key', function (string $key) {
+    config(['filagora-memberships.reserved_entitlements' => ['filagora.*', 'staff.*']]);
+    screenStaff(Abilities::MANAGE);
+
+    Livewire::test(CreateMembershipPlan::class)
+        ->fillForm(['code' => 'free', 'name' => 'Free', 'is_free' => true, 'is_active' => true, 'sort_order' => 0, 'entitlements' => ['forums.a.view', $key]])
+        ->call('create')
+        ->assertHasFormErrors(['entitlements']);
+
+    expect(MembershipPlan::count())->toBe(0);
+})->with(['*', 'forums.*', 'filagora.memberships.manage', 'staff.users.edit']);
+
+it('refuses to add such a key to a plan that exists', function () {
+    screenStaff(Abilities::MANAGE);
+    $plan = MembershipPlan::create(['code' => 'free', 'name' => 'Free', 'is_free' => true, 'sort_order' => 0, 'entitlements' => ['forums.a.view']]);
+
+    Livewire::test(EditMembershipPlan::class, ['record' => $plan->getRouteKey()])
+        ->fillForm(['entitlements' => ['forums.a.view', 'forums.*']])
+        ->call('save')
+        ->assertHasFormErrors(['entitlements']);
+
+    expect($plan->refresh()->entitlements)->toBe(['forums.a.view']);
+});
+
 it('creates a free plan without prices', function () {
     screenStaff(Abilities::MANAGE);
 

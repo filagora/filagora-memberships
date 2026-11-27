@@ -54,7 +54,11 @@ This package adds no commands.
   They change the membership only; a subscription still billing at PayPal has to be cancelled there.
 - **Entitlements.** With `filagora-entitlements` installed, a current membership grants what it was
   started with (or what its plan grants, when it has no snapshot); every plan's keys feed the
-  definitions list; a membership that changes drops its owner's cached entitlements.
+  definitions list; a membership that changes drops its owner's cached entitlements. A plan cannot
+  grant a wildcard or a reserved key: the plan form refuses it, and a membership that already
+  carries one does not grant it. `reserved_entitlements` in the config lists the reserved keys as
+  exact keys or patterns (`filagora.*` unless you change it). Add every key that gives your staff
+  access, for example `'reserved_entitlements' => ['filagora.*', 'staff.*']`.
 - **Forums.** With `filagora-forums` installed, announcements can target members (any membership, or
   one plan), and `MembershipsPaidAccess` is ready to bind as the forums' paid-access check.
 - **Billing events.** Every webhook delivery is recorded once, with its outcome. Staff see them in a
