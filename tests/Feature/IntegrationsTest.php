@@ -48,6 +48,25 @@ it('lets a current membership grant its entitlements', function () {
         ->and($this->resolver->hasEntitlement(TestUser::make('Other'), 'forums.chwm.view'))->toBeFalse();
 });
 
+it('never grants a wildcard or a reserved key', function (string $key, bool $snapshot) {
+    $plan = itgPlan(['forums.chwm.view', $key]);
+    itgMembership($this->user, $plan, $snapshot ? [] : ['granted_entitlements_snapshot' => []]);
+
+    expect($this->resolver->entitlementsFor($this->user))->toBe(['forums.chwm.view']);
+})->with([
+    'everything' => '*',
+    'a wildcard' => 'forums.*',
+    'padded wildcard' => ' forums.* ',
+    'a package ability' => 'filagora.entitlements.manage',
+])->with(['from the snapshot' => true, 'from the plan' => false]);
+
+it('keeps back the keys the host reserves', function () {
+    config(['filagora-memberships.reserved_entitlements' => ['staff.*']]);
+    itgMembership($this->user, itgPlan(['staff.users.edit', 'forums.chwm.view']));
+
+    expect($this->resolver->entitlementsFor($this->user))->toBe(['forums.chwm.view']);
+});
+
 it('explains where an entitlement came from', function () {
     $membership = itgMembership($this->user, itgPlan(['forums.chwm.view'], ['code' => 'chwm', 'name' => 'CHWM']), ['ends_at' => now()->addDays(5)]);
 

@@ -5,6 +5,10 @@ All notable changes to this package are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- A plan can no longer grant a wildcard key (such as `forums.*`) or a key listed in the new `reserved_entitlements` config (`filagora.*` by default). The plan form refuses it, and memberships leave it out of what they grant, including memberships and plans saved earlier. If you map staff abilities to your own keys, add them to the list. If a plan relied on a wildcard, list its keys one by one.
+
 ## [0.1.4] - 2026-11-14
 
 ### Changed

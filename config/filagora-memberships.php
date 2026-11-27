@@ -87,6 +87,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Reserved entitlements
+    |--------------------------------------------------------------------------
+    |
+    | Entitlement keys no plan may grant, as exact keys or patterns (`staff.*`): the plan form
+    | refuses them and a membership never grants them. Keep every key that gives staff access
+    | here. Wildcard keys are always refused. Your list replaces this one, so keep
+    | `filagora.*`, the packages' own ability keys, unless you sell one of them.
+    |
+    */
+    'reserved_entitlements' => ['filagora.*'],
+
+    /*
+    |--------------------------------------------------------------------------
     | Webhook route
     |--------------------------------------------------------------------------
     |

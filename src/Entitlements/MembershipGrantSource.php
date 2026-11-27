@@ -13,7 +13,8 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * The entitlements a person's memberships bring, for the entitlements package to merge with
  * their default and direct grants. Each current membership grants what it was started with (its
- * snapshot), falling back to what its plan grants now when the snapshot is empty.
+ * snapshot), falling back to what its plan grants now when the snapshot is empty. A key that
+ * a plan may not grant (`PlanEntitlements`) is left out, whichever of the two it came from.
  */
 final class MembershipGrantSource implements GrantSource
 {
@@ -40,10 +41,10 @@ final class MembershipGrantSource implements GrantSource
         $snapshot = $membership->granted_entitlements_snapshot;
         $keys = is_array($snapshot) && $snapshot !== [] ? $snapshot : ($membership->plan?->entitlementList() ?? []);
 
-        return array_values(array_unique(array_filter(array_map(
-            static fn (mixed $key): string => trim((string) $key),
-            $keys,
-        ))));
+        return array_values(array_unique(array_filter(
+            array_map(static fn (mixed $key): string => trim((string) $key), $keys),
+            static fn (string $key): bool => $key !== '' && PlanEntitlements::allows($key),
+        )));
     }
 
     /**
